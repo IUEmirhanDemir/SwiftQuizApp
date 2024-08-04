@@ -1,0 +1,34 @@
+[
+    {
+        "id": "module1",
+        "name": "Mathematik",
+        "questions": [
+            {
+                "id": "q1",
+                "questionText": "Was ist 2 + 2?",
+                "answer": "4"
+            },
+            {
+                "id": "q2",
+                "questionText": "Was ist die Wurzel aus 9?",
+                "answer": "3"
+            }
+        ]
+    },
+    {
+        "id": "module2",
+        "name": "Informatik",
+        "questions": [
+            {
+                "id": "q1",
+                "questionText": "Was ist ein Algorithmus?",
+                "answer": "Eine Schritt-für-Schritt-Anleitung zur Lösung eines Problems"
+            },
+            {
+                "id": "q2",
+                "questionText": "Was ist eine Variable?",
+                "answer": "Ein Speicherort, der einen Wert enthält, der während der Ausführung eines Programms geändert werden kann"
+            }
+        ]
+    }
+]

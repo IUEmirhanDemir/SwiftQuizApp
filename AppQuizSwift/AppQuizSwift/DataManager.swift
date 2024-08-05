@@ -6,28 +6,39 @@
 //
 
 import Foundation
+import SwiftData
 
-/// `DataManager` handles all data persistence operations for the AppQuizSwift application. It is responsible for loading, saving, and managing quiz modules and questions.
+
+/// `DataManager` handles all data persistence operations for the quiz application. It uses a singleton pattern to ensure that there is a single, globally accessible instance of this class throughout the application.
 class DataManager {
-    /// Shared singleton instance for global access.
+    // MARK: - Properties
+    
+    /// Shared instance of `DataManager`, ensuring a single point of access to the data management functions.
     static let shared = DataManager()
     
-    /// The filename for storing module data.
-    private let fileName = "data.json"
+    /// Name of the file where quiz data is stored.
+    private let fileName = "data"
     
-    /// Initializes a new DataManager instance. This method also ensures initial data is copied from the bundle if necessary.
+    // MARK: - Initialization
+    
+    /// Initializes the `DataManager` singleton instance. It also checks for the initial data setup and performs first-time setup if necessary.
     private init() {
         createInitialDataIfNeeded()
     }
+
+    // MARK: - Data Setup
     
-    /// Checks and copies initial data from the bundle to the documents directory if it does not already exist.
+    /// Ensures that initial data is copied from the bundle to the documents directory if it does not already exist.
     private func createInitialDataIfNeeded() {
         let documentsDirectory = getDocumentsDirectory()
         let filePath = documentsDirectory.appendingPathComponent(fileName)
         
+        // Check for the existence of the data file at the expected path
         if !FileManager.default.fileExists(atPath: filePath.path) {
+            // Attempt to locate the data file in the app's main bundle
             if let bundleURL = Bundle.main.url(forResource: "data", withExtension: "json") {
                 do {
+                    // Copy the data file from the bundle to the documents directory
                     try FileManager.default.copyItem(at: bundleURL, to: filePath)
                 } catch {
                     print("Error copying data file from bundle to documents directory: \(error.localizedDescription)")
@@ -38,8 +49,10 @@ class DataManager {
         }
     }
     
-    /// Loads modules from the local JSON file.
-    /// - Returns: An array of `Module` objects loaded from local storage.
+    // MARK: - Data Handling
+    
+    /// Loads modules from the local file system.
+    /// - Returns: An array of `Module` objects if the data could be decoded successfully, or an empty array if an error occurs.
     func loadModules() -> [Module] {
         let filePath = getDocumentsDirectory().appendingPathComponent(fileName)
         guard FileManager.default.fileExists(atPath: filePath.path) else {
@@ -57,8 +70,8 @@ class DataManager {
         }
     }
     
-    /// Saves modules to the local JSON file.
-    /// - Parameter modules: The array of `Module` objects to be saved.
+    /// Saves modules to the local file system.
+    /// - Parameter modules: An array of `Module` objects to be saved.
     func saveModules(modules: [Module]) {
         let filePath = getDocumentsDirectory().appendingPathComponent(fileName)
         do {
@@ -70,7 +83,7 @@ class DataManager {
         }
     }
     
-    /// Adds a new module to the existing list and saves the updated list.
+    /// Adds a new module to the existing list of modules and saves the updated list.
     /// - Parameter newModule: The `Module` object to be added.
     func addModule(newModule: Module) {
         var modules = loadModules()
@@ -78,10 +91,10 @@ class DataManager {
         saveModules(modules: modules)
     }
     
-    /// Deletes a module at specified offsets.
+    /// Deletes a module at the specified index set and saves the updated list.
     /// - Parameters:
-    ///   - offsets: The index set representing the positions of modules to be deleted.
-    ///   - modules: The array of `Module` objects being modified.
+    ///   - offsets: The index set from which modules will be removed.
+    ///   - modules: A reference to the module list from which deletions will be made.
     func deleteModule(at offsets: IndexSet, modules: inout [Module]) {
         offsets.forEach { index in
             if index < modules.count {
@@ -91,10 +104,10 @@ class DataManager {
         saveModules(modules: modules)
     }
     
-    /// Updates a module at a specific index with a new module.
+    /// Updates a specific module at the given index with new data and saves the updated list.
     /// - Parameters:
-    ///   - index: The index of the module to update.
-    ///   - newModule: The new `Module` object that replaces the old one.
+    ///   - index: The index of the module to be updated.
+    ///   - newModule: The new `Module` data that will replace the existing module.
     func updateModule(at index: Int, with newModule: Module) {
         var modules = loadModules()
         if index < modules.count {
@@ -102,11 +115,11 @@ class DataManager {
             saveModules(modules: modules)
         }
     }
-    
-    /// Adds a new question to a specific module.
+
+    /// Adds a new question to a specified module and saves the updated module data.
     /// - Parameters:
-    ///   - moduleIndex: The index of the module to which the question is added.
-    ///   - question: The `Question` object to add.
+    ///   - moduleIndex: The index of the module to which the new question will be added.
+    ///   - question: The `Question` object to be added.
     func addQuestion(to moduleIndex: Int, question: Question) {
         var modules = loadModules()
         if moduleIndex < modules.count {
@@ -117,41 +130,39 @@ class DataManager {
         }
     }
     
-    /// Deletes a question from a specific module.
+    /// Removes questions from a specified module using the provided index set and saves the updated data.
     /// - Parameters:
-    ///   - moduleIndex: The index of the module from which the question is deleted.
-    ///   - questionIndex: The index of the question to delete.
-    func deleteQuestion(from moduleIndex: Int, questionIndex: Int) {
+    ///   - moduleId: The ID of the module from which questions will be deleted.
+    ///   - offsets: The index set indicating which questions to remove.
+    func deleteQuestions(from moduleId: String, at offsets: IndexSet) {
         var modules = loadModules()
-        if moduleIndex < modules.count {
+        if let moduleIndex = modules.firstIndex(where: { $0.id == moduleId }) {
             var module = modules[moduleIndex]
-            if questionIndex < module.questions.count {
-                module.questions.remove(at: questionIndex)
-                modules[moduleIndex] = module
-                saveModules(modules: modules)
-            }
+            module.questions.remove(atOffsets: offsets)
+            modules[moduleIndex] = module
+            saveModules(modules: modules)
         }
     }
-    
-    /// Updates a specific question in a specific module.
+
+    /// Updates a specific question within a module and saves the updated module data.
     /// - Parameters:
-    ///   - moduleIndex: The index of the module where the question is updated.
-    ///   - questionIndex: The index of the question to update.
-    ///   - newQuestion: The new `Question` object that replaces the old one.
+    ///   - moduleIndex: The index of the module containing the question.
+    ///   - questionIndex: The index of the question to be updated.
+    ///   - newQuestion: The updated `Question` data.
     func updateQuestion(in moduleIndex: Int, at questionIndex: Int, with newQuestion: Question) {
         var modules = loadModules()
-        if moduleIndex < modules.count {
+        if moduleIndex < modules.count && questionIndex < modules[moduleIndex].questions.count {
             var module = modules[moduleIndex]
-            if questionIndex < module.questions.count {
-                module.questions[questionIndex] = newQuestion
-                modules[moduleIndex] = module
-                saveModules(modules: modules)
-            }
+            module.questions[questionIndex] = newQuestion
+            modules[moduleIndex] = module
+            saveModules(modules: modules)
         }
     }
     
-    /// Retrieves the document directory path of the application.
-    /// - Returns: A `URL` representing the path to the document directory.
+    // MARK: - Helper Methods
+    
+    /// Retrieves the documents directory URL.
+    /// - Returns: The URL of the documents directory.
     private func getDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return paths[0]

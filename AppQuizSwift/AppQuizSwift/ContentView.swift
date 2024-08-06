@@ -466,13 +466,12 @@ struct StartQuizView: View {
             numWrongAnswers += 1
             feedbackIconName = "xmark.circle"
             lastAnswerCorrect = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                goToNextQuestion()
-            }
         }
         showAnswerFeedback = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             showAnswerFeedback = false
+            goToNextQuestion()
+
         }
     }
 

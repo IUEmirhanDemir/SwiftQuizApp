@@ -275,115 +275,102 @@ struct AddQuestionView: View {
 
 // MARK: - Start Quiz View
 
-
-/// `StartQuizView` - A view that manages the entire quiz lifecycle from starting a quiz, answering questions,
-/// and viewing results. This view uses state management to handle user interactions and updates to the quiz state.
+/// `StartQuizView` manages the entire quiz lifecycle including starting a quiz, answering questions,
+/// and viewing results. It leverages SwiftUI's state management to handle interactions and state updates effectively.
 struct StartQuizView: View {
     
     // MARK: - State Variables
     
-    /// Holds an array of quiz modules loaded from a data source.
+    /// Stores an array of quiz modules loaded from a data source.
     @State internal var modules: [Module] = []
     
-    /// The currently selected quiz module.
+    /// Holds the currently selected quiz module, allowing the user to take a specific quiz.
     @State internal var selectedModule: Module?
     
-    /// Current index of the question being displayed to the user.
+    /// Tracks the current index of the question being displayed to the user.
     @State internal var currentQuestionIndex = 0
     
-    /// Indicates whether the results of the quiz are currently being shown.
+    /// Indicates whether the results of the quiz are being shown.
     @State internal var isShowingResult = false
     
-    /// Total number of correct answers provided by the user.
+    /// Counts the total number of correct answers provided by the user throughout the quiz.
     @State internal var numCorrectAnswers = 0
     
-    /// Total number of incorrect answers provided by the user.
+    /// Counts the total number of incorrect answers provided by the user throughout the quiz.
     @State internal var numWrongAnswers = 0
     
-    /// Tracks the user's selected answer to determine feedback.
+    /// Tracks the user's selected answer to determine if it's correct or incorrect.
     @State internal var selectedAnswer = ""
     
-    /// Controls the visibility of the feedback based on the user's answer.
+    /// Controls the visibility of the feedback provided for the user's answer.
     @State internal var showAnswerFeedback = false
     
-    /// Holds the name of the system image that represents feedback for the last answer (correct or incorrect).
+    /// Stores the name of the system image used to represent feedback for the last answer (either correct or incorrect).
     @State internal var feedbackIconName = ""
     
-    ///State to show Feedback
+    /// Shows whether the feedback for the correct answer should be displayed.
     @State private var showCorrectAnswer = false
     
-    /// Boolean flag to indicate if the last given answer was correct.
+    /// Indicates whether the last given answer was correct.
     @State internal var lastAnswerCorrect: Bool = false
     
-    /// Binding to control the display of this quiz view from a parent view.
+    /// Binding to control the visibility of the quiz view from a parent view.
     @Binding var showingQuiz: Bool
-    
- 
-    
+
+    /// Maintains a record of each answer provided by the user for review at the end of the quiz.
+    @State internal var answerRecords: [AnswerRecord] = []
     
     // MARK: - View Body
     
-    /// The body of the `StartQuizView`, which defines the user interface elements and their layout.
+    /// Defines the user interface of `StartQuizView`, arranging various UI components.
     var body: some View {
-        VStack{
-            /// Button to allow the user to exit the quiz.
+        VStack {
+            /// Provides a button for the user to exit the quiz at any time.
             Button(action: {
                 showingQuiz = false
             }, label: {
                 Text("Quit Quiz")
             })
-            
+            .foregroundColor(.red)
             .padding(.top, 5)
             
             NavigationView {
                 VStack {
                     if let module = selectedModule, !isShowingResult {
+                        /// Displays the current question text from the selected module.
                         Text(module.questions[currentQuestionIndex].questionText)
                             .transition(.slide)
                             .padding()
-                            .opacity(showCorrectAnswer ? 0: 1)
                             .transition(.opacity)
                         
-                        /// Displays buttons for each possible answer.
-                        ForEach(currentAnswers, id: \.self) { answer in
-                            Button(answer) {
-                                processAnswer(answer, for: module)
+                        /// Renders buttons for each possible answer using a dynamic grid layout.
+                        let columns = [
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ]
+
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(currentAnswers, id: \.self) { answer in
+                                Button(action: {
+                                    processAnswer(answer, for: module)
+                                }) {
+                                    Text(answer)
+                                        .foregroundColor(.blue)
+                                        .fontWeight(.semibold)
+                                        .padding(.vertical, 10)
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .padding(5)
+                                .shadow(radius: 10)
+                                .transition(.scale.combined(with: .opacity))
                             }
-                            .foregroundColor(.blue)
-                            .padding()
-                            .cornerRadius(10)
-                            .transition(.opacity)
-                            .opacity(showCorrectAnswer ? 0 : 1)
-                            
                         }
+                        .padding()
                         .transition(.opacity)
 
-                        
-                        if showCorrectAnswer, let module = selectedModule {
-                            
-                            VStack{
-                                
-                                Text("\(module.questions[currentQuestionIndex].questionText)")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .padding(.bottom)
-                                    .transition(.opacity)
-                                
-                                Text("Correct Answer is")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .padding(.bottom)
-                                    .transition(.opacity)
-
-                                Text("\(module.questions[currentQuestionIndex].answer)")
-                                    .foregroundColor(.green)
-                                    .font(.system(size: 32, weight: .bold))
-                                    .padding(.bottom)
-                                    .transition(.opacity)
-                            }
-                            
-                        }
-                        
-                        
-                        /// Shows an image indicating whether the last answer was correct or incorrect.
+                        /// Shows an icon indicating the correctness of the last answer.
                         if showAnswerFeedback {
                             Image(systemName: feedbackIconName)
                                 .resizable()
@@ -391,22 +378,53 @@ struct StartQuizView: View {
                                 .frame(width: 100, height: 100)
                                 .transition(.opacity)
                                 .foregroundColor(lastAnswerCorrect ? Color.green : Color.red)
-                            
                         }
                     } else if isShowingResult {
-                        /// Displays the quiz results with options to restart.
+                        /// Displays a summary of the quiz results and allows restarting the quiz.
                         VStack {
                             Text("Quiz Completed!")
-                            Text("Correct Answers: \(numCorrectAnswers) out of \(selectedModule?.questions.count ?? 0)")
-                            Text("Incorrect Answers: \(numWrongAnswers) out of \(selectedModule?.questions.count ?? 0)")
+                                .font(.title)
+                                .padding()
+                            ScrollView {
+                                VStack(spacing: 10) {
+                                    ForEach(answerRecords, id: \.question) { record in
+                                        VStack(alignment: .leading) {
+                                            Divider()
+                                            Text(record.question)
+                                                .foregroundColor(.black)
+                                                .fontWeight(.bold)
+                                                .padding(.top)
+                                            HStack {
+                                                Text("Your Answer:")
+                                                    .fontWeight(.medium)
+                                                Text("\(record.userAnswer)")
+                                                    .foregroundColor(record.isCorrect ? .green : .red)
+                                                    .fontWeight(.bold)
+                                            }
+                                            if !record.isCorrect {
+                                                HStack {
+                                                    Text("Correct Answer:")
+                                                        .fontWeight(.medium)
+                                                    Text("\(record.correctAnswer)")
+                                                        .foregroundColor(.green)
+                                                        .fontWeight(.bold)
+                                                }
+                                            }
+                                        }
+                                        .padding()
+                                        .background(Color.white)
+                                        .cornerRadius(8)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
                             Button("Start New Quiz") {
                                 resetQuiz()
                             }
-                            
                             .padding()
                         }
                     } else {
-                        /// List of modules for the user to select and start a quiz.
+                        /// Lists available modules for the user to select and start a quiz.
                         List(modules) { module in
                             Button(module.name) {
                                 selectedModule = module
@@ -420,49 +438,55 @@ struct StartQuizView: View {
                 
                 .navigationTitle(selectedModule?.name ?? "Select a Module")
                 .transition(.opacity)
-
             }
         }
     }
     
-    // MARK: -  Methods
-    
-    /// Processes the answer provided by the user and updates the quiz state.
-    ///
+    // MARK: - Methods
+
+
+    /// Processes the answer selected by the user and updates the quiz state based on correctness.
     /// - Parameters:
-    ///   - answer: The answer selected by the user.
-    ///   - module: The current quiz module.
+    ///   - answer: The answer selected by the user, as a String.
+    ///   - module: The current quiz module, which contains the questions and correct answers.
+    /// - Returns: None. Modifies the state directly by updating `answerRecords`, `numCorrectAnswers`, `numWrongAnswers`, and `feedbackIconName`.
     internal func processAnswer(_ answer: String, for module: Module) {
-        if answer == module.questions[currentQuestionIndex].answer {
+        let question = module.questions[currentQuestionIndex]
+        let correct = answer == question.answer
+        let record = AnswerRecord(question: question.questionText, userAnswer: answer, correctAnswer: question.answer, isCorrect: correct)
+
+        answerRecords.append(record)
+        
+        if correct {
             numCorrectAnswers += 1
             feedbackIconName = "checkmark.circle"
             lastAnswerCorrect = true
-            goToNextQuestion()
         } else {
             numWrongAnswers += 1
             feedbackIconName = "xmark.circle"
             lastAnswerCorrect = false
-            showCorrectAnswer = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
-                showCorrectAnswer = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                 goToNextQuestion()
             }
         }
         showAnswerFeedback = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             showAnswerFeedback = false
         }
     }
+
     
     
-    
-    
-    /// Loads modules from a data source.
+    /// Loads quiz modules from a specified data source.
+    /// - Returns: None. Updates the `modules` state variable with loaded data.
     internal func loadModules() {
         modules = DataManager.shared.loadModules()
     }
     
-    /// Determines the current set of answers to display, ensuring that they are shuffled.
+    
+    
+    /// Determines and shuffles the current set of answers to be displayed based on the current question.
+    /// - Returns: An array of strings representing the shuffled answers for the current question.
     internal var currentAnswers: [String] {
         guard let module = selectedModule else { return [] }
         let currentQuestion = module.questions[currentQuestionIndex]
@@ -477,7 +501,9 @@ struct StartQuizView: View {
         return answers.shuffled()
     }
     
-    /// Advances the quiz to the next question or ends the quiz if all questions have been answered.
+    
+    // Advances the quiz to the next question or concludes the quiz if all questions have been answered.
+    /// - Returns: None. Updates `currentQuestionIndex` or `isShowingResult` based on the progress of the quiz.
     internal func goToNextQuestion() {
         guard let module = selectedModule else { return }
         if currentQuestionIndex < module.questions.count - 1 {
@@ -488,7 +514,8 @@ struct StartQuizView: View {
         }
     }
     
-    /// Resets the quiz to its initial state for a new session.
+    /// Resets the quiz to its initial state for a new attempt.
+    /// - Returns: None. Resets all related state variables to their initial values, preparing the quiz for a new run.
     internal func resetQuiz() {
         currentQuestionIndex = 0
         numCorrectAnswers = 0
@@ -496,7 +523,22 @@ struct StartQuizView: View {
         isShowingResult = false
         selectedModule = nil
         selectedAnswer = ""
+        answerRecords = []
     }
+
+}
+
+
+/// Represents a record of an answer given by the user, detailing the question, the user's response, the correct answer, and correctness.
+struct AnswerRecord {
+    /// The text of the question that was answered.
+    let question: String
+    /// The user's response to the question.
+    let userAnswer: String
+    /// The correct answer to the question.
+    let correctAnswer: String
+    /// A Boolean value indicating whether the user's answer was correct.
+    let isCorrect: Bool
 }
 
 

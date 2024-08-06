@@ -308,9 +308,6 @@ struct StartQuizView: View {
     /// Stores the name of the system image used to represent feedback for the last answer (either correct or incorrect).
     @State internal var feedbackIconName = ""
     
-    /// Shows whether the feedback for the correct answer should be displayed.
-    @State private var showCorrectAnswer = false
-    
     /// Indicates whether the last given answer was correct.
     @State internal var lastAnswerCorrect: Bool = false
     
@@ -341,7 +338,9 @@ struct StartQuizView: View {
                         Text(module.questions[currentQuestionIndex].questionText)
                             .transition(.slide)
                             .padding()
+                            .opacity(showAnswerFeedback ? 0 : 1)
                             .transition(.opacity)
+                        
                         
                         /// Renders buttons for each possible answer using a dynamic grid layout.
                         let columns = [
@@ -368,7 +367,9 @@ struct StartQuizView: View {
                             }
                         }
                         .padding()
+                        .opacity(showAnswerFeedback ? 0 : 1)
                         .transition(.opacity)
+                        
 
                         /// Shows an icon indicating the correctness of the last answer.
                         if showAnswerFeedback {

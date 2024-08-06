@@ -1,82 +1,37 @@
 [
     {
         "id": "module1",
-        "name": "Mathematik",
+        "name": "Grundlagen der Informatik",
         "questions": [
             {
                 "id": "q1",
-                "questionText": "Was ist 2 + 2?",
-                "answer": "4"
+                "questionText": "Was ist ein Algorithmus?",
+                "answer": "Ein Verfahren oder eine Vorschrift zur Lösung eines Problems."
             },
             {
                 "id": "q2",
-                "questionText": "Was ist die Wurzel aus 9?",
-                "answer": "3"
+                "questionText": "Was ist ein Compiler?",
+                "answer": "Ein Programm, das den Quellcode einer Programmiersprache in Maschinencode übersetzt."
             },
             {
                 "id": "q3",
-                "questionText": "Wie viel ist 7 mal 5?",
-                "answer": "35"
+                "questionText": "Was bedeutet die Abkürzung 'CPU'?",
+                "answer": "Central Processing Unit, also die Zentraleinheit eines Computers."
             },
             {
                 "id": "q4",
-                "questionText": "Was ist 15 geteilt durch 3?",
-                "answer": "5"
+                "questionText": "Nenne ein Beispiel für eine Hochsprache.",
+                "answer": "Java, Python oder C++."
             },
             {
                 "id": "q5",
-                "questionText": "Was ergibt die Summe von 18 und 7?",
-                "answer": "25"
+                "questionText": "Was beschreibt die 'Boolesche Logik'?",
+                "answer": "Ein Teilgebiet der Mathematik, das sich mit wahren oder falschen Aussagen befasst."
             },
             {
                 "id": "q6",
-                "questionText": "Subtrahiere 8 von 20.",
-                "answer": "12"
-            },
-            {
-                "id": "q7",
-                "questionText": "Wie viel ist das Doppelte von 50?",
-                "answer": "100"
-            },
-            {
-                "id": "q8",
-                "questionText": "Was ist 9 mal 9?",
-                "answer": "81"
-            },
-            {
-                "id": "q9",
-                "questionText": "Was ergibt 30 geteilt durch 5?",
-                "answer": "6"
-            },
-            {
-                "id": "q10",
-                "questionText": "Wie viel ist 100 minus 46?",
-                "answer": "54"
-            },
-            {
-                "id": "q11",
-                "questionText": "Was ist der Quadrat von 12?",
-                "answer": "144"
-            },
-            {
-                "id": "q12",
-                "questionText": "Was ergibt 60 geteilt durch 12?",
-                "answer": "5"
-            },
-            {
-                "id": "q13",
-                "questionText": "Addiere 22 und 33.",
-                "answer": "55"
-            },
-            {
-                "id": "q14",
-                "questionText": "Wie viel ist 8 mal 8?",
-                "answer": "64"
-            },
-            {
-                "id": "q15",
-                "questionText": "Was ergibt die Subtraktion von 13 von 65?",
-                "answer": "52"
+                "questionText": "Was ist ein 'Bit'?",
+                "answer": "Die kleinste Informationseinheit in der Computertechnik, die den Wert 0 oder 1 annehmen kann."
             }
         ]
     }

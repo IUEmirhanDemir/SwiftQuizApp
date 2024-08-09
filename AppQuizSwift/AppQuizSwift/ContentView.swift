@@ -143,7 +143,9 @@ struct ModulDetailView: View {
                                     module.questions[index].questionText = newValue
                                     onEdit(module)
                                 }
-                            ))
+                            )
+                            )
+                            .font(.system(.headline))
                             
                             Rectangle()
                                 .frame(height: 2)
@@ -162,6 +164,7 @@ struct ModulDetailView: View {
                     } else {
                         VStack(alignment: .leading) {
                             Text(module.questions[index].questionText)
+                                .font(.system(.headline))
                             Text(module.questions[index].answer)
                         }
                     }
